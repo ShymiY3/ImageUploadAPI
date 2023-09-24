@@ -1,0 +1,32 @@
+[
+  {
+    "model": "ImageAPI.usertier",
+    "pk": 1,
+    "fields": {
+      "name": "BASIC",
+      "save_original": false,
+      "generate_expiring_link": false,
+      "thumbnail_sizes": [200]
+    }
+  },
+  {
+    "model": "ImageAPI.usertier",
+    "pk": 2,
+    "fields": {
+      "name": "ENTERPRISE",
+      "save_original": true,
+      "generate_expiring_link": false,
+      "thumbnail_sizes": [200, 400]
+    }
+  },
+  {
+    "model": "ImageAPI.usertier",
+    "pk": 3,
+    "fields": {
+      "name": "PREMIUM",
+      "save_original": true,
+      "generate_expiring_link": true,
+      "thumbnail_sizes": [200, 400]
+    }
+  }
+]
