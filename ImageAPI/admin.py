@@ -10,3 +10,4 @@ class CustomUserAdmin(UserAdmin):
 admin.site.register(models.User, CustomUserAdmin)
 admin.site.register(models.UserTier)
 admin.site.register(models.Image)
+admin.site.register(models.Thumbnail)

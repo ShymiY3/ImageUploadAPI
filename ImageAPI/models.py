@@ -1,11 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
-from django.core.files.storage import default_storage
-from django.conf import settings
-from PIL import Image as PILImage
-from io import BytesIO
-from urllib.parse import quote, unquote
 import os
 
 class UserTier(models.Model):
@@ -40,19 +35,24 @@ class User(AbstractUser):
             self.tier = UserTier.objects.get(name="PREMIUM")
         super().save(*args, **kwargs)
 
+
+
 class Image(models.Model):
-    def image_path(instance, filename):
+    def image_path(instance, filename=None):
         user_id = instance.owner.id
-    
-        return f'images/user_{user_id}/{filename}'
+        dir_path = f'images/user_{user_id}'
+        
+        if not filename:
+            return dir_path
+        
+        return f'{dir_path}/{filename}'
     
     def get_image_name(self):
-        return self.image.name.split('/')[-1]
+        return os.path.basename(self.image.path)
     
     image = models.ImageField(upload_to=image_path)
-    owner = models.ForeignKey(User, on_delete=models.CASCADE)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='images')
     created_at = models.DateTimeField(auto_now_add=True)
-    thumbnails = models.JSONField(default=dict, null=True, blank=True)
     
     def __str__(self):
         return f'Owner: {self.owner.username}; Image: {self.get_image_name()}'
@@ -72,37 +72,15 @@ class Image(models.Model):
     
     def save(self, *args, **kwargs):
         self.full_clean()
-        self.process_image()
         super().save(*args, **kwargs)
     
     
-    def process_image(self):
-        tier = self.owner.tier
-        
-        for height in tier.thumbnail_sizes:
-            thumbnail = self.generate_thumbnail(height)
-            self.append_thumbnail(height, thumbnail)
+class Thumbnail(models.Model):
+    def thumbnail_path(instance, filename):
+        user_id = instance.original_image.owner.id
+        return f'thumbnails/user_{user_id}/{filename}'
 
-    
-    def generate_thumbnail(self, height):
-        img = PILImage.open(self.image)
-        
-        ratio = height/img.size[1]
-        width = int(img.size[0] * ratio)
-        img = img.resize((width, height))
-        
-        image_dir = os.path.dirname(self.image.path)
-        image_name = self.get_image_name()
-        thumbnail_name = f"{image_name[:image_name.rfind('.')]}_{height}px.{self.format}" 
-        thumbnail_path =  os.path.join(image_dir, thumbnail_name)
-        print(thumbnail_path)
-        img.save(thumbnail_path, format=self.format.upper())
-
-        return thumbnail_name
-    
-    def append_thumbnail(self, height, thumbnail):
-        thumbnail = quote(thumbnail)
-        thumbnail_url = self.image_path(thumbnail)
-        self.thumbnails[f'{height}px'] = thumbnail_url
+    thumbnail = models.ImageField(upload_to=thumbnail_path)
+    original_image = models.ForeignKey(Image, on_delete=models.CASCADE, related_name='thumbnails')
     
     
