@@ -5,6 +5,7 @@ from django.core.files.storage import default_storage
 from django.conf import settings
 from PIL import Image as PILImage
 from io import BytesIO
+from urllib.parse import quote, unquote
 import os
 
 class UserTier(models.Model):
@@ -34,12 +35,28 @@ class UserTier(models.Model):
 class User(AbstractUser):
     tier = models.ForeignKey(UserTier, on_delete=models.CASCADE, default=None, null=True, blank=True)
 
+    def save(self, *args, **kwargs):
+        if self.is_superuser:
+            self.tier = UserTier.objects.get(name="PREMIUM")
+        super().save(*args, **kwargs)
+
 class Image(models.Model):
-    image = models.ImageField(upload_to='image/')
+    def image_path(instance, filename):
+        user_id = instance.owner.id
+    
+        return f'images/user_{user_id}/{filename}'
+    
+    def get_image_name(self):
+        return self.image.name.split('/')[-1]
+    
+    image = models.ImageField(upload_to=image_path)
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     thumbnails = models.JSONField(default=dict, null=True, blank=True)
     
+    def __str__(self):
+        return f'Owner: {self.owner.username}; Image: {self.get_image_name()}'
+
     def clean(self, *args, **kwargs):
         super().clean(*args, **kwargs)
         ALLOWED_FORMATS = [
@@ -48,9 +65,6 @@ class Image(models.Model):
         ]
         
         self.format = self.image.name.lower().split('.')[-1]
-        print(self.format)
-        
-        print(self.format in ALLOWED_FORMATS)
         
         if not self.format in ALLOWED_FORMATS:
             raise ValidationError("Format not allowed")
@@ -58,7 +72,6 @@ class Image(models.Model):
     
     def save(self, *args, **kwargs):
         self.full_clean()
-        print('clean-after')
         self.process_image()
         super().save(*args, **kwargs)
     
@@ -70,7 +83,6 @@ class Image(models.Model):
             thumbnail = self.generate_thumbnail(height)
             self.append_thumbnail(height, thumbnail)
 
-        return
     
     def generate_thumbnail(self, height):
         img = PILImage.open(self.image)
@@ -79,19 +91,18 @@ class Image(models.Model):
         width = int(img.size[0] * ratio)
         img = img.resize((width, height))
         
-        output = BytesIO()
-        img.save(output, format=self.format.upper())
-        output.seek(0)
-        
-        thumbnail_name = f"{self.image.name[:self.image.name.rfind('.')]}_{height}px.{self.format}" 
-        thumbnail_path = os.path.join(settings.MEDIA_ROOT, 'image', thumbnail_name)
-        
+        image_dir = os.path.dirname(self.image.path)
+        image_name = self.get_image_name()
+        thumbnail_name = f"{image_name[:image_name.rfind('.')]}_{height}px.{self.format}" 
+        thumbnail_path =  os.path.join(image_dir, thumbnail_name)
+        print(thumbnail_path)
         img.save(thumbnail_path, format=self.format.upper())
 
         return thumbnail_name
     
     def append_thumbnail(self, height, thumbnail):
-        relative_url = os.path.join('image', thumbnail)
-        thumbnail_url = default_storage.url(relative_url)
+        thumbnail = quote(thumbnail)
+        thumbnail_url = self.image_path(thumbnail)
         self.thumbnails[f'{height}px'] = thumbnail_url
-        
+    
+    
