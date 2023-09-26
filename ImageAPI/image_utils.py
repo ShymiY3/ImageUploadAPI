@@ -15,7 +15,6 @@ def generate_thumbnail(instance: models.Image, height: int):
     thumbnail_name = f"{image_name[:image_name.rfind('.')]}_{height}px.{ext}" 
     
     with PILImage.open(instance.image.path) as img:
-        print(img)
         ratio = height/img.size[1]
         width = int(img.size[0] * ratio)
         new_img = img.resize((width, height))
@@ -31,7 +30,7 @@ def generate_thumbnail(instance: models.Image, height: int):
                 output.tell(), 
                 None
             )
-            models.Thumbnail(thumbnail=thumbnail_upload ,original_image=instance).save()
+            models.Thumbnail(thumbnail=thumbnail_upload ,original_image=instance, height=height).save()
     
 
 def process_image(instance):

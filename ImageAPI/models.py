@@ -82,5 +82,5 @@ class Thumbnail(models.Model):
 
     thumbnail = models.ImageField(upload_to=thumbnail_path)
     original_image = models.ForeignKey(Image, on_delete=models.CASCADE, related_name='thumbnails')
-    
+    height = models.IntegerField()
     
