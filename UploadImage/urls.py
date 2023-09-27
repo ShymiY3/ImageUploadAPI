@@ -9,6 +9,3 @@ urlpatterns = [
     path('api/', include('ImageAPI.urls')),
     path('', RedirectView.as_view(pattern_name='api-root', permanent=False))
 ]
-
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

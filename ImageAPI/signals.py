@@ -5,11 +5,13 @@ from . import image_utils
 
 @receiver(pre_save, sender=models.Image)
 def auto_delete_thumbnails_on_change(sender, instance, **kwargs):
-    if instance.pk:
-        old_instance = sender.objects.get(pk=instance.pk)
+    try:
+        old_instance = sender.objects.get(id=instance.id)
         if old_instance.image != instance.image:
             image_utils.delete_thumbnails(instance)
-            
+    except sender.DoesNotExist:
+        pass
+        
 @receiver(post_save, sender=models.Image)
 def auto_generate_thumbnails_on_create(sender, instance, *args, **kwargs):
     if not instance.thumbnails.exists():

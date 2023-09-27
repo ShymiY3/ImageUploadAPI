@@ -30,7 +30,7 @@ INSTALLED_APPS = [
     'django_cleanup.apps.CleanupConfig',
     'rest_framework',
     'rest_framework_simplejwt',
-    'ImageAPI'
+    'ImageAPI',
 ]
 
 MIDDLEWARE = [

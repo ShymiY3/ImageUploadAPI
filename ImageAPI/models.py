@@ -1,13 +1,15 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
-from django.core.signing import TimestampSigner
+from django.core.signing import Signer
 from . import image_utils
+import uuid
 import os
+import time
 
 class UserTier(models.Model):
-    name = models.CharField(max_length=50)
-    thumbnail_sizes = models.JSONField(default=list)
+    name = models.CharField(max_length=60)
+    thumbnail_sizes = models.JSONField(default=list, blank=True)
     save_original = models.BooleanField(default=False)
     generate_expiring_link = models.BooleanField(default=False)
     min_expire_seconds = models.PositiveIntegerField(default=300, null=True, blank=True)
@@ -58,7 +60,7 @@ class Image(models.Model):
     
     def get_image_name(self):
         return os.path.basename(self.image.path)
-    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     image = models.ImageField(upload_to=image_path)
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='images')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -90,8 +92,8 @@ class Image(models.Model):
         super().save(*args, **kwargs)
     
     def generate_token(self, expiration_time):
-        signer = TimestampSigner()
-        data = f"{self.pk}:{expiration_time}"
+        signer = Signer()
+        data = f"{self.pk}:{expiration_time}:{time.time()}"
         token = signer.sign(data)
         return token
     
