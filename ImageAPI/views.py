@@ -47,9 +47,12 @@ class ImageViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
         
-    @action(detail=True, methods=['POST'])
+    @action(detail=True, methods=['POST'], permission_classes=[permissions.CanGenerateExpiringLink])
     def expiring_link(self, request, *args, **kwargs):
         image = self.get_object()
+        if not request.user.tier.generate_expiring_link:
+            return Response({'detail': 'Unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)
+        
         serializer = serializers.ExpiringLinkSerializer(data=request.data, context={'request' : self.request})
         
         if serializer.is_valid():

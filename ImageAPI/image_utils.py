@@ -17,7 +17,7 @@ def generate_thumbnail(instance, height: int, to_original = False):
         width = int(img.size[0] * ratio)
         new_img = img.resize((width, height))
         output = BytesIO()
-        new_img.save(output, format=ext.upper())
+        new_img.save(output, format=img.format)
         output.seek(0)
 
         thumbnail_upload = InMemoryUploadedFile(

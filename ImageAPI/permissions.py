@@ -6,3 +6,15 @@ class IsOwnerOrStaf(BasePermission):
             return True 
         return obj.owner == request.user
         
+class CanGenerateExpiringLink(BasePermission):
+    def has_permission(self, request, view):
+        user = request.user
+        
+        if request.user.is_staff:
+            return True
+        
+        if not hasattr(user, 'tier'):
+            return False    
+        
+        
+        return request.user.tier.generate_expiring_link
