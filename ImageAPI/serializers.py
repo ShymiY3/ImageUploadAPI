@@ -6,13 +6,16 @@ from . import models
 class ImageSerializer(serializers.ModelSerializer):
     owner = serializers.ReadOnlyField(source="owner.username")
     filename = serializers.SerializerMethodField(read_only=True)
-    image = serializers.SerializerMethodField(read_only=True)
+    image_url = serializers.SerializerMethodField(read_only=True)
     thumbnails = serializers.SerializerMethodField(read_only=True)
     
     
     class Meta:
         model = models.Image
-        fields = "__all__"
+        fields = (
+            'owner',
+            'filename',
+        )
     
     def build_uri(self, path):
             request = self.context.get("request")
@@ -21,7 +24,7 @@ class ImageSerializer(serializers.ModelSerializer):
     def get_filename(self, obj):
         return obj.get_image_name()
 
-    def get_image(self, obj):
+    def get_image_url(self, obj):
         return self.build_uri(reverse('images-show-image', kwargs={'pk':obj.id}))
     
     def get_thumbnails(self, obj):
@@ -56,7 +59,7 @@ class ImageDetailSerializer(ImageSerializer):
             "id",
             "owner",
             "filename",
-            "image",
+            "image_url",
             "thumbnails",
             "created_at",
             "modified_at",
@@ -65,9 +68,15 @@ class ImageDetailSerializer(ImageSerializer):
 
 
 class ImageCreateUpdateSerializer(ImageSerializer):
-    class Meta(ImageDetailSerializer.Meta):
+    image = serializers.ImageField(write_only=True)
+    
+    class Meta(ImageSerializer.Meta):
+        fields = (
+            *ImageDetailSerializer.Meta.fields,
+            'image'
+        )
+        
         read_only_fields = ImageDetailSerializer.Meta.read_only_fields
-        read_only_fields.remove("image")
 
 class ExpiringLinkSerializer(serializers.Serializer):
     expiration_time = serializers.IntegerField()

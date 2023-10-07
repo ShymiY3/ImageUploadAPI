@@ -20,12 +20,14 @@ class ImageViewSet(viewsets.ModelViewSet):
         'retrieve' : serializers.ImageDetailSerializer,
         'create' : serializers.ImageCreateUpdateSerializer,
         'update' : serializers.ImageCreateUpdateSerializer,
+        'partial_update' : serializers.ImageCreateUpdateSerializer,
         'expiring_link' : serializers.ExpiringLinkSerializer,
     }
     
     
     def get_serializer_class(self):
         if hasattr(self, 'action_serializers'):
+            print(self.action)
             return self.action_serializers.get(self.action, self.serializer_class)
         return super().get_serializer_class()
 
@@ -106,4 +108,3 @@ def access_expiring_link(request, token):
         return Response({'detail': 'The link does not exist.'}, status=status.HTTP_400_BAD_REQUEST)
     except models.Image.DoesNotExist:
         return Response({'detail': 'The image has been deleted.'}, status=status.HTTP_404_NOT_FOUND)
-    
