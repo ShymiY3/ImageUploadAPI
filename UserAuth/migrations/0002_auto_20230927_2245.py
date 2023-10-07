@@ -24,7 +24,7 @@ INIT_DATA = [
 ]
 
 def init_populate(apps, schema_editor):
-    UserTier = apps.get_model("ImageAPI", "UserTier")
+    UserTier = apps.get_model("UserAuth", "UserTier")
     for tier in INIT_DATA:
         UserTier(**tier).save()
     
@@ -32,7 +32,7 @@ def init_populate(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('ImageAPI', '0001_initial'),
+        ('UserAuth', '0001_initial'),
     ]
 
     operations = [

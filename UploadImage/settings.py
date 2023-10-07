@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     'django_cleanup.apps.CleanupConfig',
     'rest_framework',
     'rest_framework_simplejwt',
+    'UserAuth',
     'ImageAPI',
 ]
 
@@ -41,6 +42,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'UserAuth.middleware.MediaAccessMiddleware',
 ]
 
 ROOT_URLCONF = 'UploadImage.urls'
@@ -93,7 +95,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-AUTH_USER_MODEL = "ImageAPI.User"
+AUTH_USER_MODEL = "UserAuth.User"
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
