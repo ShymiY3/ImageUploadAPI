@@ -13,7 +13,11 @@ import time
 
 class ImageViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.ImageSerializer
-    permission_classes = [permissions.IsOwnerOrStaf, RestPermissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [
+        permissions.HasTier,
+        permissions.IsOwnerOrStaf,
+        RestPermissions.IsAuthenticatedOrReadOnly   
+    ]
     
     action_serializers = {
         'list': serializers.ImageListSerializer,
@@ -108,3 +112,4 @@ def access_expiring_link(request, token):
         return Response({'detail': 'The link does not exist.'}, status=status.HTTP_400_BAD_REQUEST)
     except models.Image.DoesNotExist:
         return Response({'detail': 'The image has been deleted.'}, status=status.HTTP_404_NOT_FOUND)
+    
