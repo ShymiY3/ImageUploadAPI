@@ -16,5 +16,4 @@ class CanGenerateExpiringLink(BasePermission):
         if not hasattr(user, 'tier'):
             return False    
         
-        
         return request.user.tier.generate_expiring_link

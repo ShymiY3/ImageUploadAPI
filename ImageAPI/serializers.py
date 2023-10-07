@@ -69,10 +69,6 @@ class ImageCreateUpdateSerializer(ImageSerializer):
         read_only_fields = ImageDetailSerializer.Meta.read_only_fields
         read_only_fields.remove("image")
 
-
-from rest_framework import serializers
-
-
 class ExpiringLinkSerializer(serializers.Serializer):
     expiration_time = serializers.IntegerField()
 
